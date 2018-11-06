@@ -52,7 +52,7 @@ rank_pairs <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, n
   perm_f <- lapply(1:nrow(f), function(i) t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]] - sum(f[i,])/ncol(f))))
   names(perm_f) <- row.names(f)
 
-  adj_sym <- ((adj_matrix+t(adj_matrix)) > 0) + 1 - 1
+  adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
   diag(adj_sym) <- 0
   print(adj_sym)
 
