@@ -5,6 +5,7 @@
 #'
 #' @import RANN
 #' @import igraph
+#' @import Matrix
 #' @export
 #'
 

@@ -54,7 +54,6 @@ rank_pairs <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, n
 
   adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
   diag(adj_sym) <- 0
-  print(adj_sym)
 
   # Evaluates R and p for a pair of features fo
   cornel <- function(fo) {
