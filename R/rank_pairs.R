@@ -32,6 +32,7 @@
 #' rank_pairs(gy,features,pairs)
 #'
 #' @import Matrix
+#' @import parallel
 #' @export
 
 rank_pairs <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, num_cores = 1) {
@@ -117,7 +118,7 @@ rank_pairs <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, n
   qqh$q0 <- p.adjust(qqh$p0, method = 'BH')
 
   # Add feature columns
-  qqh <- cbind(f = f_pairs[,1], g = f_pairs[,2], qqh)
+  qqh <- data.frame(f = f_pairs[,1], g = f_pairs[,2], qqh, stringsAsFactors=F)
 
   return(qqh)
 }
