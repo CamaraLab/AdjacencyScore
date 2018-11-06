@@ -1,0 +1,9 @@
+Package: AdjacencyScore
+Type: Package
+Title: Computes a bivariate metric to rank pairs of features by how colocalized they are in a graph
+Version: 0.1.0
+Authors@R: person("Kiya W.", "Govek", email = "govekk@pennmedicine.upenn.edu", role = c("aut", "cre"))
+Description: This package calculates f((e^{kA}-I)/k)g for each pair of features f and g on a graph with adjacency matrix A and constant k between 0 and 1.
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
