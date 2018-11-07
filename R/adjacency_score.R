@@ -41,7 +41,8 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
     f_pairs <- matrix(unlist(f_pairs), ncol=2, byrow=T)
   }
 
-  permutations <- t(mcmapply(function(x) sample(1:ncol(f)), 1:num_perms, mc.cores=num_cores))
+  permutations <- t(mcmapply(function(x) sample(1:ncol(f)), 1:(num_perms-1), mc.cores=num_cores))
+  permutations <- rbind(1:ncol(f), permutations)
 
   # Permute and normalize each feature, result is a list of matrices where each matrix corresponds to all the permutations for each feature
   perm_f <- mclapply(1:nrow(f), function(i) t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]] - sum(f[i,])/ncol(f))), mc.cores=num_cores)
@@ -49,9 +50,8 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
 
   adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
   diag(adj_sym) <- 0
-  adj_sym <- as.matrix(adj_sym)
 
-  expm_adj <- expm::expm(k*adj_sym)
+  expm_adj <- expm::expm(k*adj_sym, method="Higham08")
 
   # Evaluates R and p for a pair of features fo
   cornel <- function(fo) {
@@ -94,14 +94,14 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
     work <- list()
     if (wr>0) {
       for (m in 1:wr) {
-        work[[m]] <- (f_pairs[(1+(m-1)*(wv+1)):(m*(wv+1)),])
+        work[[m]] <- (f_pairs[(1+(m-1)*(wv+1)):(m*(wv+1)),,drop=FALSE])
       }
       for (m in (wr+1):num_cores) {
-        work[[m]] <- (f_pairs[(1+wr+(m-1)*wv):(wr+m*wv),])
+        work[[m]] <- (f_pairs[(1+wr+(m-1)*wv):(wr+m*wv),,drop=FALSE])
       }
     } else {
       for (m in 1:num_cores) {
-        work[[m]] <- (f_pairs[(1+(m-1)*wv):(m*wv),])
+        work[[m]] <- (f_pairs[(1+(m-1)*wv):(m*wv),,drop=FALSE])
       }
     }
     reul <- mclapply(work, worker, mc.cores = num_cores)
