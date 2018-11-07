@@ -24,18 +24,13 @@
 #' @param num_cores integer specifying the number of cores to be used in the computation. By
 #' default only one core is used.
 #'
-#' # Example 1
-#' gy <- nerve_complex(list(c(1,4,6,10), c(1,2,7), c(2,3,8), c(3,4,9,10), c(4,5)))
-#' features <- rbind(c(0,1,1,0,0,0,0,0,0,1), c(1,1,0,1,1,0,0,1,1,0))
-#' row.names(features) <- c("f1","f2")
-#' pairs <- pairs <- matrix(c("f1","f1","f2","f2","f1","f2"), ncol=2, byrow=T)
-#' rank_pairs(gy,features,pairs)
-#'
 #' @import Matrix
 #' @import parallel
+#' @import expm
 #' @export
 
-rank_pairs <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, num_cores = 1) {
+adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, num_cores = 1) {
+
   # Check class of f
   if (class(f) != 'matrix') {
     f <- as.matrix(f)
@@ -56,6 +51,8 @@ rank_pairs <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, n
   adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
   diag(adj_sym) <- 0
 
+  expm_adj <- expm::expm(k*adj_sym)
+
   # Evaluates R and p for a pair of features fo
   cornel <- function(fo) {
     f1 <- perm_f[[fo[1]]]
@@ -63,7 +60,7 @@ rank_pairs <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, n
     if (k == 0) {
       qt <- rowSums((f1%*%adj_sym)*f2)
     } else {
-      qt <- rowSums((f1%*%((expm(k*adj_sym) - diag(nrow(adj_sym)))/k))*f2)
+      qt <- rowSums((f1%*%((expm_adj - diag(nrow(adj_sym)))/k))*f2)
     }
     ph <- NULL
     ph$R0 <- qt[1]
