@@ -50,6 +50,7 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
 
   adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
   diag(adj_sym) <- 0
+  adj_sym <- as.matrix(adj_sym)
 
   expm_adj <- expm::expm(k*adj_sym)
 
