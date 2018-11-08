@@ -9,7 +9,7 @@ library(AdjacencyScore)
 ## Functions
 
 ```
-knn_graph(distance_matrix, k=5)
+knn_graph(data, k=5)
 ```
 Calculates an approximate knn graph using RANN and outputs the adjacency matrix in sparse matrix format.
 
