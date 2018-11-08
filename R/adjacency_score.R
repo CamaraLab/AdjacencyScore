@@ -39,6 +39,9 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
   # Check class of f_pairs
   if (class(f_pairs) == 'list') {
     f_pairs <- matrix(unlist(f_pairs), ncol=2, byrow=T)
+  } else if (class(f_pairs) == 'numeric' || class(f_pairs) == 'character') {
+    # only one pair
+    f_pairs <- matrix(f_pairs, ncol=2, byrow=T)
   }
 
   permutations <- t(mcmapply(function(x) sample(1:ncol(f)), 1:(num_perms-1), mc.cores=num_cores))
@@ -53,6 +56,7 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
 
   if (k != 0) {
     expm_adj <- expm::expm(k*adj_sym, method="Higham08")
+    expm_adj <- as.matrix(expm_adj)
     expm_adj <- (expm_adj - diag(nrow(adj_sym)))/k
   }
 
