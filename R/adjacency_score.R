@@ -51,7 +51,10 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
   adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
   diag(adj_sym) <- 0
 
-  expm_adj <- expm::expm(k*adj_sym, method="Higham08")
+  if (k != 0) {
+    expm_adj <- expm::expm(k*adj_sym, method="Higham08")
+    expm_adj <- (expm_adj - diag(nrow(adj_sym)))/k
+  }
 
   # Evaluates R and p for a pair of features fo
   cornel <- function(fo) {
@@ -60,23 +63,23 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
     if (k == 0) {
       qt <- rowSums((f1%*%adj_sym)*f2)
     } else {
-      qt <- rowSums((f1%*%((expm_adj - diag(nrow(adj_sym)))/k))*f2)
+      qt <- rowSums((f1%*%expm_adj)*f2)
     }
     ph <- NULL
-    ph$R0 <- qt[1]
-    ph$p0 <- (sum(qt>=qt[1])-1.0)/num_perms
+    ph$score <- qt[1]
+    ph$p <- (sum(qt>=qt[1])-1.0)/num_perms
     return(ph)
   }
 
   # Each worker evaluates R anp p for a set fu of pairs of features
   worker <- function(fu) {
     qh <- NULL
-    qh$R0 <- NULL
-    qh$p0 <- NULL
+    qh$score <- NULL
+    qh$p <- NULL
     for (i in 1:nrow(fu)) {
       d <- cornel(fu[i,])
-      qh$R0 <- rbind(qh$R0, d$R0)
-      qh$p0 <- rbind(qh$p0, d$p0)
+      qh$score <- rbind(qh$score, d$score)
+      qh$p <- rbind(qh$p, d$p)
     }
     return(data.frame(qh))
   }
@@ -112,7 +115,7 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
   }
 
   # Adjust for multiple hypothesis testing
-  qqh$q0 <- p.adjust(qqh$p0, method = 'BH')
+  qqh$q <- p.adjust(qqh$p, method = 'BH')
 
   # Add feature columns
   qqh <- data.frame(f = f_pairs[,1], g = f_pairs[,2], qqh, stringsAsFactors=F)
