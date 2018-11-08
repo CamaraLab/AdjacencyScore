@@ -4,7 +4,7 @@
 \alias{adjacency_score}
 \title{Ranks pairs of features using the Combinatorial Laplacian Score for 0- and 1-forms.}
 \usage{
-adjacency_score(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10,
+adjacency_score(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 10,
   num_cores = 1)
 }
 \arguments{
@@ -15,7 +15,7 @@ column corresponds to a point and each row specifies a different function.}
 \item{f_pairs}{a 2 column matrix where each row specifes the indices or names
 of a pair of points on which the Comb. Lap. score will be computed}
 
-\item{k}{constant used to determine width of diffusion, must be 0 < k <= 1}
+\item{c}{constant used to determine width of diffusion, must be 0 <= c}
 
 \item{num_perms}{number of permutations used to build the null distribution for each
 feature. By default is set to 1000.}

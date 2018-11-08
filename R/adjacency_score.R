@@ -16,7 +16,7 @@
 #' column corresponds to a point and each row specifies a different function.
 #' @param f_pairs a 2 column matrix where each row specifes the indices or names
 #' of a pair of points on which the Comb. Lap. score will be computed
-#' @param k constant used to determine width of diffusion, must be 0 < k <= 1
+#' @param c constant used to determine width of diffusion, must be 0 <= c
 #' @param num_perms number of permutations used to build the null distribution for each
 #' feature. By default is set to 1000.
 #' @param seed integer specifying the seed used to initialize the generator of permutations.
@@ -29,7 +29,7 @@
 #' @import expm
 #' @export
 
-adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 10, num_cores = 1) {
+adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 10, num_cores = 1) {
 
   # Check class of f
   if (class(f) != 'matrix') {
@@ -55,9 +55,9 @@ adjacency_score <- function(adj_matrix, f, f_pairs, k, num_perms = 1000, seed = 
   diag(adj_sym) <- 0
 
   if (k != 0) {
-    expm_adj <- expm::expm(k*adj_sym, method="Higham08")
+    expm_adj <- expm::expm(c*adj_sym, method="Higham08")
     expm_adj <- as.matrix(expm_adj)
-    expm_adj <- (expm_adj - diag(nrow(adj_sym)))/k
+    expm_adj <- (expm_adj - diag(nrow(adj_sym)))/c
   }
 
   # Evaluates R and p for a pair of features fo
