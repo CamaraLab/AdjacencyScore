@@ -64,7 +64,7 @@ adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 
   cornel <- function(fo) {
     f1 <- perm_f[[fo[1]]]
     f2 <- perm_f[[fo[2]]]
-    if (k == 0) {
+    if (c == 0) {
       qt <- rowSums((f1%*%adj_sym)*f2)
     } else {
       qt <- rowSums((f1%*%expm_adj)*f2)
