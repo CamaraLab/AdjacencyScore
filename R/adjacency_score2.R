@@ -48,7 +48,7 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed =
   permutations <- rbind(1:ncol(f), permutations)
 
   # Permute and normalize each feature, result is a list of matrices where each matrix corresponds to all the permutations for each feature
-  perm_f <- mclapply(1:nrow(f), function(i) t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]] - sum(f[i,])/ncol(f))), mc.cores=num_cores)
+  perm_f <- mclapply(1:nrow(f), function(i) t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]])), mc.cores=num_cores)
   names(perm_f) <- row.names(f)
 
   adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
