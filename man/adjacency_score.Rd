@@ -5,7 +5,7 @@
 \title{Ranks pairs of features using the Combinatorial Laplacian Score for 0- and 1-forms.}
 \usage{
 adjacency_score(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 10,
-  num_cores = 1)
+  num_cores = 1, perm_estimate = F, groupings = F)
 }
 \arguments{
 \item{f}{a numeric vector or matrix specifying one or more functions with support on
@@ -25,6 +25,13 @@ By default is set to 10.}
 
 \item{num_cores}{integer specifying the number of cores to be used in the computation. By
 default only one core is used.}
+
+\item{perm_estimate}{boolean indicating whether normal distribution parameters should be
+determined from num_perms permutations to estimate the p-value. By default is set to FALSE.}
+
+\item{groupings}{boolean indicating whether features are binary and mutually exclusive
+indicated each point's inclusion in some group. Allows for p-value computation from a
+parameterized hypergeometric null distribution. By default is set to FALSE.}
 
 \item{g2}{an object of the class \code{simplicial} containing the nerve or clique complex.}
 }

@@ -23,13 +23,19 @@
 #' By default is set to 10.
 #' @param num_cores integer specifying the number of cores to be used in the computation. By
 #' default only one core is used.
+#' @param perm_estimate boolean indicating whether normal distribution parameters should be
+#' determined from num_perms permutations to estimate the p-value. By default is set to FALSE.
+#' @param groupings boolean indicating whether features are binary and mutually exclusive
+#' indicated each point's inclusion in some group. Allows for p-value computation from a
+#' parameterized hypergeometric null distribution. By default is set to FALSE.
 #'
 #' @import Matrix
 #' @import parallel
 #' @import expm
+#' @import MASS
 #' @export
 
-adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 10, num_cores = 1) {
+adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 10, num_cores = 1, perm_estimate = F, groupings=F) {
 
   # Check class of f
   if (class(f) != 'matrix') {
@@ -44,11 +50,26 @@ adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 
     f_pairs <- matrix(f_pairs, ncol=2, byrow=T)
   }
 
-  permutations <- t(mcmapply(function(x) sample(1:ncol(f)), 1:num_perms, mc.cores=num_cores))
+  if (c != 0 && groupings) {
+    groupings <- FALSE
+    cat("Setting groupings to FALSE since c > 0")
+  }
+
+  # If using parameterized distribution for p-value, don't need permutations
+  if (groupings && num_perms > 0) {
+    num_perms <- 0
+    cat("Setting num_perms to 0 since using grouping features")
+  }
+
+  permutations <- NULL
+  if (num_perms > 0) {
+    permutations <- t(mcmapply(function(x) sample(1:ncol(f)), 1:num_perms, mc.cores=num_cores))
+  }
+
   permutations <- rbind(1:ncol(f), permutations)
 
   # Permute and normalize each feature, result is a list of matrices where each matrix corresponds to all the permutations for each feature
-  perm_f <- mclapply(1:nrow(f), function(i) t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]] - sum(f[i,])/ncol(f))), mc.cores=num_cores)
+  perm_f <- mclapply(1:nrow(f), function(i) t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]])), mc.cores=num_cores)
   names(perm_f) <- row.names(f)
 
   adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
@@ -71,7 +92,28 @@ adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 
     }
     ph <- NULL
     ph$score <- qt[1]
-    ph$p <- (sum(qt>=qt[1])-1.0)/num_perms
+    if (groupings) {
+      # features are mutually exclusive
+      overlap <- sum(f1 * f2)
+      if (overlap == 0) {
+        wb <- 2 * sum(f1) * sum(f2)
+        edges <- sum(adj_sym)/2
+        ph$p <- 1-phyper(qt[1], m=wb, n = length(f1)*(length(f1)-1) - wb, k = edges)
+      }
+      # features entirely overlap (same grouping)
+      else {
+        wb <- overlap*(overlap - 1)
+        edges <- sum(adj_sym)/2
+        ph$p <- 1-phyper(floor(qt[1]/2), m=wb, n = length(f1)*(length(f1)-1) - wb, k = edges)
+      }
+    }
+    else if (perm_estimate) {
+      nfit <- fitdistr(as.numeric(qt), "normal")
+      ph$p <- 1-pnorm(qt[1], mean=nfit$estimate["mean"], sd = nfit$estimate["sd"])
+    }
+    else {
+      ph$p <- (sum(qt>=qt[1])-1.0)/num_perms
+    }
     return(ph)
   }
 
