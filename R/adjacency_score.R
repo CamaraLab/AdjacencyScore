@@ -1,16 +1,11 @@
-#' Ranks pairs of features using the Combinatorial Laplacian Score for 0- and 1-forms.
+#' Ranks pairs of features by how localized they are in graph
 #'
-#' Given a nerve or a clique complex, a set of features consisting of functions with support on
-#' the set of points underlying the complex, and a list of pairs of features,
-#' it asseses the significance of each pair of features
-#' in the simplicial complex by computing its scalar and vectorial Combinatorial Laplacian
-#' Score and comparing it with the null distribution that results from reshufling many times the values of
-#' the function across the point cloud. For nerve complexes, feature functions induce 0- and
-#' 1-forms in the complex by averaging the function across the points associated to 0- and 1-simplices
-#' respectively. For clique complexes, feature functions are directly 0-forms in the complex and 1-forms
-#' are obtained by averaging the function across the two vertices connected by each edge.
+#' Given the adjacency matrix of a graph and a set of features on that graph, ranks given pairs
+#' of those features (f and g) by the equation f((e^{kA}-I)/k)g, which measures how much those
+#' features are colocalized in the graph. Calculates the p-value of this score by permuting the columns
+#' of the feature matrix.
 #'
-#' @param g2 an object of the class \code{simplicial} containing the nerve or clique complex.
+#' @param adj_matrix a (preferrably sparse) binary matrix of adjacency between the columns of f
 #' @param f a numeric vector or matrix specifying one or more functions with support on
 #' the set of points whose significance will be assesed in the simplicial complex. Each
 #' column corresponds to a point and each row specifies a different function.
@@ -19,8 +14,6 @@
 #' @param c constant used to determine width of diffusion, must be 0 <= c
 #' @param num_perms number of permutations used to build the null distribution for each
 #' feature. By default is set to 1000.
-#' @param seed integer specifying the seed used to initialize the generator of permutations.
-#' By default is set to 10.
 #' @param num_cores integer specifying the number of cores to be used in the computation. By
 #' default only one core is used.
 #' @param perm_estimate boolean indicating whether normal distribution parameters should be
@@ -35,7 +28,7 @@
 #' @import MASS
 #' @export
 
-adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 10, num_cores = 1, perm_estimate = F, groupings=F) {
+adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cores = 1, perm_estimate = F, groupings=F) {
 
   # Check class of f
   if (class(f) != 'matrix') {

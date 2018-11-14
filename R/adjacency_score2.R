@@ -1,16 +1,11 @@
-#' Ranks pairs of features using the Combinatorial Laplacian Score for 0- and 1-forms.
+#' Ranks pairs of features by how localized they are in graph
 #'
-#' Given a nerve or a clique complex, a set of features consisting of functions with support on
-#' the set of points underlying the complex, and a list of pairs of features,
-#' it asseses the significance of each pair of features
-#' in the simplicial complex by computing its scalar and vectorial Combinatorial Laplacian
-#' Score and comparing it with the null distribution that results from reshufling many times the values of
-#' the function across the point cloud. For nerve complexes, feature functions induce 0- and
-#' 1-forms in the complex by averaging the function across the points associated to 0- and 1-simplices
-#' respectively. For clique complexes, feature functions are directly 0-forms in the complex and 1-forms
-#' are obtained by averaging the function across the two vertices connected by each edge.
+#' Given the adjacency matrix of a graph and a set of features on that graph, ranks given pairs
+#' of those features (f and g) by the equation f((e^{kA}-I)/k)g, which measures how much those
+#' features are colocalized in the graph. Calculates the p-value for this score by permuting
+#' the columns of the feature matrix separately for each features.
 #'
-#' @param g2 an object of the class \code{simplicial} containing the nerve or clique complex.
+#' @param adj_matrix a (preferrably sparse) binary matrix of adjacency between the columns of f
 #' @param f a numeric vector or matrix specifying one or more functions with support on
 #' the set of points whose significance will be assesed in the simplicial complex. Each
 #' column corresponds to a point and each row specifies a different function.
@@ -19,17 +14,21 @@
 #' @param c constant used to determine width of diffusion, must be 0 <= c
 #' @param num_perms number of permutations used to build the null distribution for each
 #' feature. By default is set to 1000.
-#' @param seed integer specifying the seed used to initialize the generator of permutations.
-#' By default is set to 10.
 #' @param num_cores integer specifying the number of cores to be used in the computation. By
 #' default only one core is used.
+#' @param perm_estimate boolean indicating whether normal distribution parameters should be
+#' determined from num_perms permutations to estimate the p-value. By default is set to FALSE.
+#' @param groupings boolean indicating whether features are binary and mutually exclusive
+#' indicated each point's inclusion in some group. Allows for p-value computation from a
+#' parameterized hypergeometric null distribution. By default is set to FALSE.
 #'
 #' @import Matrix
 #' @import parallel
 #' @import expm
+#' @import MASS
 #' @export
 
-adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 10, num_cores = 1) {
+adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cores = 1, perm_estimate = F, groupings=F) {
 
   # Check class of f
   if (class(f) != 'matrix') {
@@ -44,11 +43,26 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed =
     f_pairs <- matrix(f_pairs, ncol=2, byrow=T)
   }
 
-  permutations <- t(mcmapply(function(x) sample(1:ncol(f)), 1:num_perms, mc.cores=num_cores))
-  permutations <- rbind(1:ncol(f), permutations)
+  if (c != 0 && groupings) {
+    groupings <- FALSE
+    cat("Setting groupings to FALSE since c > 0")
+  }
 
-  # Permute and normalize each feature, result is a list of matrices where each matrix corresponds to all the permutations for each feature
-  perm_f <- mclapply(1:nrow(f), function(i) t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]])), mc.cores=num_cores)
+  # If using parameterized distribution for p-value, don't need permutations
+  if (groupings && num_perms > 0) {
+    num_perms <- 0
+    cat("Setting num_perms to 0 since using grouping features")
+  }
+
+  perm_f <- vector('list', nrow(f))
+  for (i in 1:nrow(f)) {
+    permutations <- NULL
+    if (num_perms > 0) {
+      permutations <- t(mcmapply(function(x) sample(1:ncol(f)), 1:num_perms, mc.cores=num_cores))
+    }
+    permutations <- rbind(1:ncol(f), permutations)
+    perm_f[[i]] <-  t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]]))
+  }
   names(perm_f) <- row.names(f)
 
   adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
@@ -69,15 +83,42 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed =
     } else {
       qt <- rowSums((f1%*%expm_adj)*f2)
     }
-    return(qt)
+    ph <- NULL
+    ph$score <- qt[1]
+    if (groupings) {
+      # features are mutually exclusive
+      overlap <- sum(f1 * f2)
+      if (overlap == 0) {
+        wb <- 2 * sum(f1) * sum(f2)
+        edges <- sum(adj_sym)/2
+        ph$p <- 1-phyper(qt[1], m=wb, n = length(f1)*(length(f1)-1) - wb, k = edges)
+      }
+      # features entirely overlap (same grouping)
+      else {
+        wb <- overlap*(overlap - 1)
+        edges <- sum(adj_sym)/2
+        ph$p <- 1-phyper(floor(qt[1]/2), m=wb, n = length(f1)*(length(f1)-1) - wb, k = edges)
+      }
+    }
+    else if (perm_estimate) {
+      nfit <- fitdistr(as.numeric(qt), "normal")
+      ph$p <- 1-pnorm(qt[1], mean=nfit$estimate["mean"], sd = nfit$estimate["sd"])
+    }
+    else {
+      ph$p <- (sum(qt>=qt[1])-1.0)/num_perms
+    }
+    return(ph)
   }
 
   # Each worker evaluates R anp p for a set fu of pairs of features
   worker <- function(fu) {
     qh <- NULL
+    qh$score <- NULL
+    qh$p <- NULL
     for (i in 1:nrow(fu)) {
       d <- cornel(fu[i,])
-      qh <- rbind(qh, d)
+      qh$score <- rbind(qh$score, d$score)
+      qh$p <- rbind(qh$p, d$p)
     }
     return(data.frame(qh))
   }
@@ -111,6 +152,9 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, seed =
       qqh <- rbind(qqh, reul[[m]])
     }
   }
+
+  # Adjust for multiple hypothesis testing
+  qqh$q <- p.adjust(qqh$p, method = 'BH')
 
   # Add feature columns
   qqh <- data.frame(f = f_pairs[,1], g = f_pairs[,2], qqh, stringsAsFactors=F)

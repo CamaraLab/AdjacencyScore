@@ -2,12 +2,14 @@
 % Please edit documentation in R/adjacency_score2.R
 \name{adjacency_score2}
 \alias{adjacency_score2}
-\title{Ranks pairs of features using the Combinatorial Laplacian Score for 0- and 1-forms.}
+\title{Ranks pairs of features by how localized they are in graph}
 \usage{
-adjacency_score2(adj_matrix, f, f_pairs, c, num_perms = 1000, seed = 10,
-  num_cores = 1)
+adjacency_score2(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cores = 1,
+  perm_estimate = F, groupings = F)
 }
 \arguments{
+\item{adj_matrix}{a (preferrably sparse) binary matrix of adjacency between the columns of f}
+
 \item{f}{a numeric vector or matrix specifying one or more functions with support on
 the set of points whose significance will be assesed in the simplicial complex. Each
 column corresponds to a point and each row specifies a different function.}
@@ -20,22 +22,19 @@ of a pair of points on which the Comb. Lap. score will be computed}
 \item{num_perms}{number of permutations used to build the null distribution for each
 feature. By default is set to 1000.}
 
-\item{seed}{integer specifying the seed used to initialize the generator of permutations.
-By default is set to 10.}
-
 \item{num_cores}{integer specifying the number of cores to be used in the computation. By
 default only one core is used.}
 
-\item{g2}{an object of the class \code{simplicial} containing the nerve or clique complex.}
+\item{perm_estimate}{boolean indicating whether normal distribution parameters should be
+determined from num_perms permutations to estimate the p-value. By default is set to FALSE.}
+
+\item{groupings}{boolean indicating whether features are binary and mutually exclusive
+indicated each point's inclusion in some group. Allows for p-value computation from a
+parameterized hypergeometric null distribution. By default is set to FALSE.}
 }
 \description{
-Given a nerve or a clique complex, a set of features consisting of functions with support on
-the set of points underlying the complex, and a list of pairs of features,
-it asseses the significance of each pair of features
-in the simplicial complex by computing its scalar and vectorial Combinatorial Laplacian
-Score and comparing it with the null distribution that results from reshufling many times the values of
-the function across the point cloud. For nerve complexes, feature functions induce 0- and
-1-forms in the complex by averaging the function across the points associated to 0- and 1-simplices
-respectively. For clique complexes, feature functions are directly 0-forms in the complex and 1-forms
-are obtained by averaging the function across the two vertices connected by each edge.
+Given the adjacency matrix of a graph and a set of features on that graph, ranks given pairs
+of those features (f and g) by the equation f((e^{kA}-I)/k)g, which measures how much those
+features are colocalized in the graph. Calculates the p-value for this score by permuting
+the columns of the feature matrix separately for each features.
 }
