@@ -2,7 +2,7 @@
 % Please edit documentation in R/overlap_score.R
 \name{overlap_score}
 \alias{overlap_score}
-\title{Ranks pairs of features using the Combinatorial Laplacian Score for 0- and 1-forms.}
+\title{Ranks pairs of features by how much they overlap in a graph}
 \usage{
 overlap_score(f, f_pairs, num_perms = 1000, seed = 10, num_cores = 1)
 }
@@ -24,13 +24,8 @@ By default is set to 10.}
 default only one core is used.}
 }
 \description{
-Given a nerve or a clique complex, a set of features consisting of functions with support on
-the set of points underlying the complex, and a list of pairs of features,
-it asseses the significance of each pair of features
-in the simplicial complex by computing its scalar and vectorial Combinatorial Laplacian
-Score and comparing it with the null distribution that results from reshufling many times the values of
-the function across the point cloud. For nerve complexes, feature functions induce 0- and
-1-forms in the complex by averaging the function across the points associated to 0- and 1-simplices
-respectively. For clique complexes, feature functions are directly 0-forms in the complex and 1-forms
-are obtained by averaging the function across the two vertices connected by each edge.
+Given the adjacency matrix of a graph and a set of features on that graph, ranks given pairs
+of those features (f and g) by the equation fg, which measures how much those features
+cooccur in the same cells. Calculates the p-value for this score by permuting
+the columns of the feature matrix separately for each features.
 }
