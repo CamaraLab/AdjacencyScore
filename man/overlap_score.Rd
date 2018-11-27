@@ -4,7 +4,8 @@
 \alias{overlap_score}
 \title{Ranks pairs of features by how much they overlap in a graph}
 \usage{
-overlap_score(f, f_pairs, num_perms = 1000, seed = 10, num_cores = 1)
+overlap_score(f, f_pairs, num_perms = 1000, seed = 10, num_cores = 1,
+  perm_estimate = F)
 }
 \arguments{
 \item{f}{a numeric vector or matrix specifying one or more functions with support on
@@ -22,6 +23,9 @@ By default is set to 10.}
 
 \item{num_cores}{integer specifying the number of cores to be used in the computation. By
 default only one core is used.}
+
+\item{perm_estimate}{boolean indicating whether normal distribution parameters should be
+determined from num_perms permutations to estimate the p-value. By default is set to FALSE.}
 }
 \description{
 Given the adjacency matrix of a graph and a set of features on that graph, ranks given pairs
