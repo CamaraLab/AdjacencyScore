@@ -45,13 +45,13 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
 
   if (c != 0 && groupings) {
     groupings <- FALSE
-    cat("Setting groupings to FALSE since c > 0")
+    cat("Setting groupings to FALSE since c > 0\n")
   }
 
   # If using parameterized distribution for p-value, don't need permutations
   if (groupings && num_perms > 0) {
     num_perms <- 0
-    cat("Setting num_perms to 0 since using grouping features")
+    cat("Setting num_perms to 0 since using grouping features\n")
   }
 
   perm_f <- vector('list', nrow(f))
