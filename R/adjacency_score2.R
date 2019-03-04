@@ -105,7 +105,7 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
       ph$p <- 1-pnorm(qt[1], mean=nfit$estimate["mean"], sd = nfit$estimate["sd"])
     }
     else {
-      ph$p <- (sum(qt>=qt[1])-1.0)/num_perms
+      ph$p <- sum(qt>qt[1])/num_perms
     }
     return(ph)
   }

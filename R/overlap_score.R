@@ -67,7 +67,7 @@ overlap_score <- function(f, f_pairs, num_perms = 1000, seed = 10, num_cores = 1
       ph$p <- 1-pnorm(qt[1], mean=nfit$estimate["mean"], sd = nfit$estimate["sd"])
     }
     else {
-      ph$p <- (sum(qt>=qt[1])-1.0)/num_perms
+      ph$p <- sum(qt>qt[1])/num_perms
     }
     return(ph)
   }
