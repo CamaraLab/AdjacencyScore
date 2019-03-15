@@ -65,8 +65,12 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
   }
   names(perm_f) <- row.names(f)
 
-  adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
-  diag(adj_sym) <- 0
+  if(!isSymmetric(adj_matrix)) {
+    warning("Adjacency matrix is not symmetrical, computing symmetrical matrix")
+    adj_sym <- 1*((adj_matrix+t(adj_matrix)) > 0)
+  } else {
+    adj_sym <- adj_matrix
+  }
 
   if (c != 0) {
     expm_adj <- expm::expm(c*adj_sym, method="Higham08")
