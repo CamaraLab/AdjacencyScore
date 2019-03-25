@@ -3,7 +3,7 @@
 #' Given the adjacency matrix of a graph and a set of features on that graph, ranks given pairs
 #' of those features (f and g) by the equation f((e^{kA}-I)/k)g, which measures how much those
 #' features are colocalized in the graph. Calculates the p-value for this score by permuting
-#' the columns of the feature matrix separately for each features.
+#' the columns of the feature matrix separately for each feature.
 #'
 #' @param adj_matrix a (preferrably sparse) binary matrix of adjacency between the columns of f
 #' @param f a numeric matrix specifying one or more features defined for each node of the graph.
@@ -27,11 +27,14 @@
 #' @import MASS
 #' @export
 
-adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cores = 1, perm_estimate = F, groupings=F) {
+adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cores = 1, perm_estimate = F, groupings=F, sparse=F, verbose=T) {
 
+  ptm <- proc.time()
   # Check class of f
-  if (class(f) != 'matrix') {
+  if (class(f) == 'data.frame') {
     f <- as.matrix(f)
+  } else if (class(f) == 'numeric') {
+    f <- t(as.matrix(f))
   }
 
   # Check class of f_pairs
@@ -53,14 +56,17 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
     cat("Setting num_perms to 0 since using grouping features\n")
   }
 
+  if (verbose) cat("Creating permutation matrices")
   perm_f <- vector('list', nrow(f))
   for (i in 1:nrow(f)) {
     permutations <- NULL
     if (num_perms > 0) {
-      permutations <- t(mcmapply(function(x) sample(1:ncol(f)), 1:num_perms, mc.cores=num_cores))
+      permutations <- t(sapply(1:num_perms, function(x) sample(f[i,])))
+      if (sparse) {
+        permutations <- Matrix(permutations, sparse=TRUE)
+      }
     }
-    permutations <- rbind(1:ncol(f), permutations)
-    perm_f[[i]] <-  t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]]))
+    perm_f[[i]] <-  rbind(f[i,], permutations)
   }
   names(perm_f) <- row.names(f)
 
@@ -130,6 +136,9 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
     num_cores <- nrow(f_pairs)
   }
 
+  if (verbose) cat(" -", (proc.time() - ptm)[3], "seconds\n")
+  ptm <- proc.time()
+  if (verbose) cat("Computing adjacency score for each feature pair")
   if (num_cores == 1 || nrow(f_pairs) == 1) {
     qqh <- worker(f_pairs)
   } else {
@@ -161,6 +170,6 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
 
   # Add feature columns
   qqh <- data.frame(f = f_pairs[,1], g = f_pairs[,2], qqh, stringsAsFactors=F)
-
+  if (verbose) cat(" -", (proc.time() - ptm)[3], "seconds\n")
   return(qqh)
 }
