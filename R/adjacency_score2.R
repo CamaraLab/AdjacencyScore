@@ -20,6 +20,7 @@
 #' @param groupings boolean indicating whether features are binary and mutually exclusive
 #' indicated each point's inclusion in some group. Allows for p-value computation from a
 #' parameterized hypergeometric null distribution. By default is set to FALSE.
+#' @param verbose print time taken to create permutation matrices and compute adjacency score
 #'
 #' @import Matrix
 #' @import parallel
@@ -27,7 +28,7 @@
 #' @import MASS
 #' @export
 
-adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cores = 1, perm_estimate = F, groupings=F, sparse=F, verbose=T) {
+adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cores = 1, perm_estimate = F, groupings=F, verbose=T) {
 
   ptm <- proc.time()
   # Check class of f
@@ -59,14 +60,12 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
   if (verbose) cat("Creating permutation matrices")
   perm_f <- vector('list', nrow(f))
   for (i in 1:nrow(f)) {
-    permutations <- NULL
+    permuted_feature <- NULL
     if (num_perms > 0) {
-      permutations <- t(sapply(1:num_perms, function(x) sample(f[i,])))
-      if (sparse) {
-        permutations <- Matrix(permutations, sparse=TRUE)
-      }
+      permuted_feature <- t(sapply(1:num_perms, function(x) sample(f[i,])))
+      permuted_feature  <- as(permuted_feature , class(f))
     }
-    perm_f[[i]] <-  rbind(f[i,], permutations)
+    perm_f[[i]] <-  rbind(f[i,], permuted_feature )
   }
   names(perm_f) <- row.names(f)
 

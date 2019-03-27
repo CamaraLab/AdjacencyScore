@@ -5,17 +5,16 @@
 \title{Ranks pairs of features by how localized they are in graph}
 \usage{
 adjacency_score2(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cores = 1,
-  perm_estimate = F, groupings = F)
+  perm_estimate = F, groupings = F, verbose = T)
 }
 \arguments{
 \item{adj_matrix}{a (preferrably sparse) binary matrix of adjacency between the columns of f}
 
-\item{f}{a numeric vector or matrix specifying one or more functions with support on
-the set of points whose significance will be assesed in the simplicial complex. Each
-column corresponds to a point and each row specifies a different function.}
+\item{f}{a numeric matrix specifying one or more features defined for each node of the graph.
+Each column is a node of the graph and each row is a feature over the nodes.}
 
-\item{f_pairs}{a 2 column matrix where each row specifes the indices or names
-of a pair of points on which the Comb. Lap. score will be computed}
+\item{f_pairs}{a 2 column matrix where each row specifies the indices or names
+of a pair of features on which the score will be computed}
 
 \item{c}{constant used to determine width of diffusion, must be 0 <= c}
 
@@ -31,10 +30,12 @@ determined from num_perms permutations to estimate the p-value. By default is se
 \item{groupings}{boolean indicating whether features are binary and mutually exclusive
 indicated each point's inclusion in some group. Allows for p-value computation from a
 parameterized hypergeometric null distribution. By default is set to FALSE.}
+
+\item{verbose}{print time taken to create permutation matrices and compute adjacency score}
 }
 \description{
 Given the adjacency matrix of a graph and a set of features on that graph, ranks given pairs
 of those features (f and g) by the equation f((e^{kA}-I)/k)g, which measures how much those
 features are colocalized in the graph. Calculates the p-value for this score by permuting
-the columns of the feature matrix separately for each features.
+the columns of the feature matrix separately for each feature.
 }
