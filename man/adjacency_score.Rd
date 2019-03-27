@@ -35,7 +35,7 @@ parameterized hypergeometric null distribution. By default is set to FALSE.}
 }
 \description{
 Given the adjacency matrix of a graph and a set of features on that graph, ranks given pairs
-of those features (f and g) by the equation f((e^{kA}-I)/k)g, which measures how much those
+of those features (f and g) by the equation f((e^{cA}-I)/c)g, which measures how much those
 features are colocalized in the graph. Calculates the p-value of this score by permuting the columns
 of the feature matrix.
 }
