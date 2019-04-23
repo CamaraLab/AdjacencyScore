@@ -1,7 +1,7 @@
 #' Ranks features by how localized they are in graph
 #'
 #' Given the adjacency matrix of a graph and a set of features on that graph, ranks those features (f)
-#' by the equation f((e^{kA}-I)/k)g, which measures how much those features are colocalized in the graph.
+#' by the equation f((e^{kA}-I)/k)f, which measures how much those features are localized in the graph.
 #' Calculates the p-value of this score by permuting the columns of the feature matrix.
 #'
 #' @param adj_matrix a (preferrably sparse) binary matrix of adjacency between the columns of f
