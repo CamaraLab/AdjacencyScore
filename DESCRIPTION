@@ -4,7 +4,7 @@ Title: Computes a bivariate metric to rank pairs of features by how colocalized 
 Version: 0.1.0
 Authors@R: person("Kiya W.", "Govek", email = "govekk@pennmedicine.upenn.edu", role = c("aut", "cre"))
 Description: This package calculates f((e^{kA}-I)/k)g for each pair of features f and g on a graph with adjacency matrix A and constant k between 0 and 1.
-Imports: Matrix, igraph, expm, parallel, MASS
+Imports: Matrix, igraph, parallel, MASS
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1

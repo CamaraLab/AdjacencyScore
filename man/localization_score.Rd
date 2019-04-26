@@ -25,6 +25,6 @@ determined from num_perms permutations to estimate the p-value. By default is se
 }
 \description{
 Given the adjacency matrix of a graph and a set of features on that graph, ranks those features (f)
-by the equation f((e^{kA}-I)/k)g, which measures how much those features are colocalized in the graph.
+by the equation f((e^{kA}-I)/k)f, which measures how much those features are localized in the graph.
 Calculates the p-value of this score by permuting the columns of the feature matrix.
 }

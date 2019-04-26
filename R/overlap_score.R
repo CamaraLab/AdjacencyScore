@@ -20,7 +20,6 @@
 #'
 #' @import Matrix
 #' @import parallel
-#' @import expm
 #' @import MASS
 #' @export
 
