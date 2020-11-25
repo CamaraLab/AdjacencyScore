@@ -31,16 +31,15 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
 
   ptm <- proc.time()
   # Check class of f
-  if (class(f) == 'data.frame') {
+  if (!is(f,'matrix') && !is(f,'Matrix')) {
+    cat("Converting f to matrix\n")
     f <- as.matrix(f)
-  } else if (class(f) == 'numeric') {
-    f <- t(as.matrix(f))
   }
-
+  
   # Check class of f_pairs
-  if (class(f_pairs) == 'list') {
+  if (is(f_pairs,'list')) {
     f_pairs <- matrix(unlist(f_pairs), ncol=2, byrow=T)
-  } else if (class(f_pairs) == 'numeric' || class(f_pairs) == 'character') {
+  } else if (is(f_pairs,'numeric') || is(f_pairs,'character')) {
     # only one pair
     f_pairs <- matrix(f_pairs, ncol=2, byrow=T)
   }
@@ -62,7 +61,7 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
     permuted_feature <- NULL
     if (num_perms > 0) {
       permuted_feature <- t(sapply(1:num_perms, function(x) sample(f[i,])))
-      permuted_feature  <- as(permuted_feature , class(f))
+      permuted_feature  <- keep_sparse(permuted_feature , f)
     }
     perm_f[[i]] <-  rbind(f[i,], permuted_feature )
   }
@@ -170,4 +169,15 @@ adjacency_score2 <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_co
   qqh <- data.frame(f = f_pairs[,1], g = f_pairs[,2], qqh, stringsAsFactors=F)
   if (verbose) cat(" -", (proc.time() - ptm)[3], "seconds\n")
   return(qqh)
+}
+
+#' Converts input matrix to sparse if the original
+#' matrix was sparse
+#'
+keep_sparse <- function(mat, orig_mat) {
+  if (is(orig_mat,"Matrix")) {
+    return(Matrix(mat, sparse=TRUE))
+  } else {
+    return(mat)
+  }
 }

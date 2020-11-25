@@ -2,7 +2,7 @@
 
 ```
 install.packages("expm")
-devtools::install_github("CamaraLab/AdjacencyScore", auth_token = _________ )
+devtools::install_github("CamaraLab/AdjacencyScore")
 library(AdjacencyScore)
 ```
 

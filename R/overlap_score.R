@@ -26,14 +26,15 @@
 overlap_score <- function(f, f_pairs, num_perms = 1000, seed = 10, num_cores = 1, perm_estimate = F) {
 
   # Check class of f
-  if (class(f) != 'matrix') {
+  if (!is(f,'matrix') && !is(f,'Matrix')) {
+    cat("Converting f to matrix\n")
     f <- as.matrix(f)
   }
-
+  
   # Check class of f_pairs
-  if (class(f_pairs) == 'list') {
+  if (is(f_pairs,'list')) {
     f_pairs <- matrix(unlist(f_pairs), ncol=2, byrow=T)
-  } else if (class(f_pairs) == 'numeric' || class(f_pairs) == 'character') {
+  } else if (is(f_pairs,'numeric') || is(f_pairs,'character')) {
     # only one pair
     f_pairs <- matrix(f_pairs, ncol=2, byrow=T)
   }

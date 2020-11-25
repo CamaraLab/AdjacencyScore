@@ -31,17 +31,15 @@ adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cor
 
   ptm <- proc.time()
   # Check class of f
-  # if (class(f) == 'data.frame') {
-  #   f <- as.matrix(f)
-  # }
-  if (class(f) != 'matrix') {
+  if (!is(f,'matrix') && !is(f,'Matrix')) {
+    cat("Converting f to matrix\n")
     f <- as.matrix(f)
   }
 
   # Check class of f_pairs
-  if (class(f_pairs) == 'list') {
+  if (is(f_pairs,'list')) {
     f_pairs <- matrix(unlist(f_pairs), ncol=2, byrow=T)
-  } else if (class(f_pairs) == 'numeric' || class(f_pairs) == 'character') {
+  } else if (is(f_pairs,'numeric') || is(f_pairs,'character')) {
     # only one pair
     f_pairs <- matrix(f_pairs, ncol=2, byrow=T)
   }
@@ -66,7 +64,7 @@ adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cor
   permutations <- rbind(1:ncol(f), permutations)
 
   # Permute each feature, result is a list of matrices where each matrix corresponds to all the permutations for each feature
-  perm_f <- mclapply(1:nrow(f), function(i) as(t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]])), class(f)), mc.cores=num_cores)
+  perm_f <- mclapply(1:nrow(f), function(i) keep_sparse(t(sapply(1:nrow(permutations), function(j) f[i,][permutations[j,]])),f), mc.cores=num_cores)
   names(perm_f) <- row.names(f)
 
   if(!isSymmetric(adj_matrix)) {
@@ -171,4 +169,15 @@ adjacency_score <- function(adj_matrix, f, f_pairs, c, num_perms = 1000, num_cor
   qqh <- data.frame(f = f_pairs[,1], g = f_pairs[,2], qqh, stringsAsFactors=F)
   if (verbose) cat(" -", (proc.time() - ptm)[3], "seconds\n")
   return(qqh)
+}
+
+#' Converts input matrix to sparse if the original
+#' matrix was sparse
+#'
+keep_sparse <- function(mat, orig_mat) {
+  if (is(orig_mat,"Matrix")) {
+    return(Matrix(mat, sparse=TRUE))
+  } else {
+    return(mat)
+  }
 }
