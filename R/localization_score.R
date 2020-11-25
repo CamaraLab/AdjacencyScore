@@ -23,7 +23,8 @@
 localization_score <- function(adj_matrix, f, num_perms = 1000, num_cores = 1, perm_estimate = F) {
 
   # Check class of f
-  if (class(f) != 'matrix') {
+  if (!is(f,'matrix') && !is(f,'Matrix')) {
+    cat("Converting f to matrix\n")
     f <- as.matrix(f)
   }
 
